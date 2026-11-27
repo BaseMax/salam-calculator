@@ -1,0 +1,77 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package history
+
+import os
+import str
+import fs
+import env
+import gui.device
+import os.desktop.paths
+
+include "../core/model.salam"
+
+const APP_ID := "SalamCalculator"
+const LIMIT := 50
+
+func folder(): str:
+    chosen := env.Get("SALAM_CALCULATOR_HOME")
+    if chosen.Len() > 0:
+        ret chosen
+    end
+    mobile := device.DataDir()
+    if mobile.Len() > 0:
+        ret mobile
+    end
+    ret paths.AppDataDir(APP_ID)
+end
+
+func file(): str:
+    ret folder() + "/history.tsv"
+end
+
+func parse(line: str, entries &: Vector<model.Entry>):
+    tab := line.Find("\t")
+    if tab <= 0 or entries.Len() >= LIMIT:
+        ret
+    end
+    entries.Push(
+        model.Entry {
+            source = line.Substr(0, tab), result = line.Substr(tab + 1, line.Len() - tab - 1)
+        }
+    )
+end
+
+pub func Load(entries &: Vector<model.Entry>):
+    if not fs.Exists(file()):
+        ret
+    end
+    text := fs.ReadText(file())
+    lines := text.Split("\n")
+    each line in lines:
+        parse(line, entries)
+    end
+end
+
+pub func Save(entries: Vector<model.Entry>):
+    os.MkdirAll(folder())
+    mut text := str.NewBuilder()
+    defer str.BufFree(text)
+    each entry in entries:
+        str.BufAppend(text, entry.source + "\t" + entry.result + "\n")
+    end
+    fs.WriteText(file(), str.BufStr(text))
+end
+
+pub func Add(entries &: Vector<model.Entry>, source: str, result: str):
+    entries.Insert(0, model.Entry { source = str.Clone(source), result = str.Clone(result) })
+    if entries.Len() > LIMIT:
+        entries.Pop()
+    end
+    Save(entries)
+end

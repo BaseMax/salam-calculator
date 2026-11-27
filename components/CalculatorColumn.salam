@@ -1,0 +1,32 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component CalculatorColumn(app: session.Session, send: func (str, str)):
+    box:
+        grow = 1
+        basis = 0
+        max width = 560
+        min width = 0
+        padding = 14
+        gap = 10
+        Header:
+            browsing = app.browsing
+            send = send
+        end
+        if page.height < 520 and page.width > page.height:
+            ShortLayout:
+                app = app
+                send = send
+            end
+        else:
+            TallLayout:
+                app = app
+                send = send
+            end
+        end
+    end
+end

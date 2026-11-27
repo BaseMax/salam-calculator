@@ -1,0 +1,31 @@
+resize 400 720
+click #d2
+click #add
+click #d3
+click #multiply
+click #d4
+click #equals
+click "History"
+click #entry-0
+type +6=
+key 8
+type /0
+key Enter
+key Backspace
+type 4=
+resize 980 700
+click #open
+click #d1
+click #add
+click #d2
+click #close
+click #square
+click #equals
+resize 760 360
+click #clear
+click #d9
+click #root
+click #subtract
+click #d1
+click #equals
+quit

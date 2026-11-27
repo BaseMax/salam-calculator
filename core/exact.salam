@@ -1,0 +1,30 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package exact
+
+include "scan.salam"
+include "model.salam"
+
+pub func Applies(s: model.State, expr: str): bool:
+    if s.exact == "" or s.rounded == "" or not expr.StartsWith(s.rounded):
+        ret false
+    end
+    if expr.Len() == s.rounded.Len():
+        ret true
+    end
+    c := expr[s.rounded.Len()] as int
+    ret not scan.IsDigit(c) and c != 46 and c != 101
+end
+
+pub func Substituted(s: model.State, expr: str): str:
+    if not Applies(s, expr):
+        ret expr
+    end
+    rest := expr.Substr(s.rounded.Len(), expr.Len() - s.rounded.Len())
+    ret "(" + s.exact + ")" + rest
+end

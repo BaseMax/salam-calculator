@@ -1,0 +1,23 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component HistoryPanel(entries: Vector<model.Entry>, send: func (str, str)):
+    box:
+        grow = 5
+        basis = 0
+        gap = 10
+        min height = 0
+        HistoryHeader:
+            count = entries.Len()
+            send = send
+        end
+        HistoryList:
+            entries = entries
+            send = send
+        end
+    end
+end

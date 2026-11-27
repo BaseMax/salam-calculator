@@ -1,0 +1,19 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component BottomPanel(app: session.Session, send: func (str, str)):
+    if app.browsing and (page.width < 760 or page.height < 520):
+        HistoryPanel:
+            entries = app.entries
+            send = send
+        end
+    else:
+        Keypad:
+            send = send
+        end
+    end
+end

@@ -1,0 +1,52 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package roots
+
+import str
+import decimal
+
+include "numbers.salam"
+
+const STEPS := 60
+
+func first_guess(a: decimal.Dec): decimal.Dec:
+    text := a.ToStr()
+    whole := numbers.WholeDigits(text)
+    if whole == 0:
+        half := numbers.LeadingZeros(text) / 2
+        ret decimal.ParseOr("1e-" + str.FromInt(half as i64))
+    end
+    ret decimal.ParseOr("1e" + str.FromInt((whole / 2) as i64))
+end
+
+func refine(a: decimal.Dec, x: decimal.Dec, two: decimal.Dec): decimal.Dec:
+    mut quotient := decimal.Div(a, x, numbers.WORKING_SCALE, decimal.Rounding.HalfEven)
+    defer quotient.Free()
+    mut total := decimal.Add(x, quotient)
+    defer total.Free()
+    ret decimal.Div(total, two, numbers.WORKING_SCALE, decimal.Rounding.HalfEven)
+end
+
+pub func Square(a: decimal.Dec): decimal.Dec:
+    if a.IsZero():
+        ret decimal.Zero()
+    end
+    mut x := first_guess(a)
+    mut two := decimal.FromInt(2 as i64)
+    defer two.Free()
+    repeat STEPS:
+        next := refine(a, x, two)
+        same := decimal.Equals(next, x)
+        x.Free()
+        x = next
+        if same:
+            break
+        end
+    end
+    ret x
+end

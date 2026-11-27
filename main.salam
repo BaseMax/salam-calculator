@@ -1,0 +1,47 @@
+/*
+ * Salam Calculator
+ * Copyright (c) 2026 Seyyed Ali Mohammadiyeh (Max Base)
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Powered by the Salam programming language
+ * https://github.com/SalamLang/Salam
+ *
+ * Licensed under GPL-3.0
+ */
+
+import str
+import gui.ui
+
+include "core/pretty.salam"
+include "app/session.salam"
+include "theme/colors.salam"
+include "theme/keys.salam"
+include "theme/sizes.salam"
+include "theme/skin.salam"
+
+mut app := session.Session {}
+
+func send(intent: str, value: str):
+    session.Handle(app, intent, value)
+end
+
+page:
+    title = "Salam Calculator"
+    background = colors.Page()
+    safe_area = "fixed"
+    keydown = (): send("shortcut", "") end
+    Screen:
+        app = app
+        send = send
+    end
+end
+
+func open_window():
+    options := ui.Options { width = 400.0, height = 720.0, title = "Salam Calculator" }
+    ui.RunPageWith((): ret ui.NoPatches() end, (b: ui.Builder): __salam_page(b) end, options)
+end
+
+func main:
+    session.Start(app)
+    open_window()
+end

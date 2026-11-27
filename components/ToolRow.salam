@@ -1,0 +1,25 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component ToolRow(actions: str, send: func (str, str)):
+    box:
+        layout = "row"
+        direction = "ltr"
+        gap = 10
+        shrink = 0
+        height = 42
+        if page.height < 620:
+            height = 34
+        end
+        each _, action in str.Fields(actions):
+            Key:
+                action = action
+                send = send
+            end
+        end
+    end
+end

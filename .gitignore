@@ -1,0 +1,5 @@
+dist/
+.salam-build/
+.DS_Store
+*.o
+*.exe

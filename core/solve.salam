@@ -1,0 +1,116 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package solve
+
+include "scan.salam"
+include "model.salam"
+include "exact.salam"
+include "evaluate.salam"
+
+func completed(expr: str): str:
+    mut out := expr
+    until out.Len() > 0:
+        c := scan.LastChar(out)
+        if not scan.IsOperator(c) and c != 40 and c != 114:
+            break
+        end
+        out = scan.DropLast(out, 1)
+    end
+    repeat scan.OpenBrackets(out):
+        out += ")"
+    end
+    ret out
+end
+
+func is_operation(expr: str): bool:
+    mut last := 0
+    repeat expr.Len() in i:
+        c := expr[i] as int
+        if c == 94 or c == 37 or c == 114:
+            ret true
+        end
+        if scan.IsOperator(c) and scan.EndsValue(last):
+            ret true
+        end
+        last = c
+    end
+    ret false
+end
+
+func last_operation(expr: str): str:
+    mut depth := 0
+    mut i := expr.Len() - 1
+    until i > 0:
+        c := expr[i] as int
+        if c == 41:
+            depth++
+        else c == 40:
+            depth--
+        else depth == 0 and scan.IsOperator(c) and scan.EndsValue(expr[i - 1] as int):
+            ret expr.Substr(i, expr.Len() - i)
+        end
+        i--
+    end
+    ret ""
+end
+
+func unrecorded(s: model.State): model.State:
+    mut same := s
+    same.recorded = false
+    ret same
+end
+
+func failed(s: model.State, message: str): model.State:
+    mut bad := unrecorded(s)
+    bad.error = message
+    bad.done = false
+    ret bad
+end
+
+pub func Equals(s: model.State): model.State:
+    repeating := s.done and s.error == ""
+    if repeating and s.again == "":
+        ret unrecorded(s)
+    end
+    text := repeating ? s.expr + s.again : completed(s.expr)
+    if text == "":
+        ret unrecorded(s)
+    end
+    outcome := evaluate.Run(exact.Substituted(s, text))
+    if not outcome.ok:
+        ret failed(s, outcome.error)
+    end
+    mut again := s.again
+    if not repeating:
+        again = last_operation(text)
+    end
+    ret model.State {
+        expr = outcome.shown,
+        done = true,
+        source = text,
+        again = again,
+        rounded = outcome.shown,
+        exact = outcome.exact,
+        recorded = is_operation(text)
+    }
+end
+
+pub func Preview(s: model.State): str:
+    if s.done or s.error != "":
+        ret ""
+    end
+    text := completed(s.expr)
+    if not is_operation(text):
+        ret ""
+    end
+    outcome := evaluate.Run(exact.Substituted(s, text))
+    if not outcome.ok:
+        ret ""
+    end
+    ret outcome.shown
+end

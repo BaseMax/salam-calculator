@@ -1,0 +1,135 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package scan
+
+pub func IsDigit(c: int): bool:
+    ret c >= 48 and c <= 57
+end
+
+pub func IsOperator(c: int): bool:
+    ret c == 43 or c == 45 or c == 42 or c == 47
+end
+
+pub func EndsValue(c: int): bool:
+    ret IsDigit(c) or c == 46 or c == 41 or c == 37 or c == 94
+end
+
+pub func LastChar(text: str): int:
+    if text.Len() == 0:
+        ret 0
+    end
+    ret text[text.Len() - 1] as int
+end
+
+pub func DropLast(text: str, count: int): str:
+    if text.Len() <= count:
+        ret ""
+    end
+    ret text.Substr(0, text.Len() - count)
+end
+
+pub func NumberEnd(text: str, from: int): int:
+    mut i := from
+    until i < text.Len():
+        c := text[i] as int
+        if IsDigit(c) or c == 46:
+            i++
+            continue
+        end
+        if c == 101 and i > from:
+            i++
+            if i < text.Len() and (text[i] as int) == 45:
+                i++
+            end
+            continue
+        end
+        break
+    end
+    ret i
+end
+
+pub func NumberStart(text: str): int:
+    mut i := text.Len()
+    until i > 0:
+        c := text[i - 1] as int
+        if IsDigit(c) or c == 46 or c == 101:
+            i--
+            continue
+        end
+        if c == 45 and i >= 2 and (text[i - 2] as int) == 101:
+            i--
+            continue
+        end
+        break
+    end
+    ret i
+end
+
+pub func TrailingNumber(text: str): str:
+    start := NumberStart(text)
+    ret text.Substr(start, text.Len() - start)
+end
+
+pub func OpenBrackets(text: str): int:
+    mut open := 0
+    repeat text.Len() in i:
+        c := text[i] as int
+        if c == 40:
+            open++
+        else c == 41:
+            open--
+        end
+    end
+    ret open
+end
+
+pub func BracketStart(text: str, from: int): int:
+    mut depth := 0
+    mut i := from
+    until i > 0:
+        c := text[i - 1] as int
+        if c == 41:
+            depth++
+        else c == 40:
+            depth--
+        end
+        i--
+        if depth == 0:
+            break
+        end
+    end
+    if i > 0 and (text[i - 1] as int) == 114:
+        i--
+    end
+    ret i
+end
+
+pub func OperandStart(text: str): int:
+    mut i := text.Len()
+    until i > 0 and ((text[i - 1] as int) == 94 or (text[i - 1] as int) == 37):
+        i--
+    end
+    if i == 0:
+        ret text.Len()
+    end
+    mut start := i
+    if (text[i - 1] as int) == 41:
+        start = BracketStart(text, i)
+    else:
+        start = NumberStart(text.Substr(0, i))
+        if start == i:
+            ret text.Len()
+        end
+    end
+    if start > 0 and (text[start - 1] as int) == 45 and (start == 1 or not EndsValue(
+        text[start - 2] as int
+    )):
+        start--
+    end
+    ret start
+end

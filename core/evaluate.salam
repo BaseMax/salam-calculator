@@ -1,0 +1,239 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package evaluate
+
+import decimal
+
+include "scan.salam"
+include "numbers.salam"
+include "roots.salam"
+
+const MAX_DIGITS := 100
+const MAX_DEPTH := 40
+
+pub struct Outcome:
+    pub ok: bool = false
+    pub shown: str = ""
+    pub exact: str = ""
+    pub error: str = ""
+end
+
+struct Parser:
+    pub text: str = ""
+    pub pos: int = 0
+    pub depth: int = 0
+    pub error: str = ""
+end
+
+struct Term:
+    pub value: decimal.Dec = decimal.Dec {}
+    pub percent: bool = false
+end
+
+func peek(p &: Parser): int:
+    if p.pos >= p.text.Len():
+        ret 0
+    end
+    ret p.text[p.pos] as int
+end
+
+func fail(p &: Parser, message: str):
+    if p.error == "":
+        p.error = message
+    end
+end
+
+func bounded(p &: Parser, d: decimal.Dec): decimal.Dec:
+    if numbers.WholeDigits(d.ToStr()) > MAX_DIGITS:
+        fail(p, "Number is too large")
+        ret decimal.Zero()
+    end
+    if d.scale > numbers.WORKING_SCALE:
+        ret decimal.Rescale(d, numbers.WORKING_SCALE, decimal.Rounding.HalfEven)
+    end
+    ret d.Clone()
+end
+
+func replace(p &: Parser, t &: Term, next: decimal.Dec):
+    mut raw := next
+    kept := bounded(p, raw)
+    raw.Free()
+    t.value.Free()
+    t.value = kept
+end
+
+func divide(p &: Parser, t &: Term, divisor: decimal.Dec):
+    if divisor.IsZero():
+        fail(p, "Cannot divide by zero")
+        ret
+    end
+    replace(p, t, decimal.Div(t.value, divisor, numbers.WORKING_SCALE, decimal.Rounding.HalfEven))
+end
+
+func square_root(p &: Parser, t &: Term):
+    if t.value.Sign() < 0:
+        fail(p, "Invalid input")
+        ret
+    end
+    replace(p, t, roots.Square(t.value))
+end
+
+func group(p &: Parser): Term:
+    rooted := peek(p) == 114
+    if rooted:
+        p.pos++
+    end
+    if peek(p) != 40 or p.depth >= MAX_DEPTH:
+        fail(p, p.depth >= MAX_DEPTH ? "Too many brackets" : "Invalid input")
+        ret Term {}
+    end
+    p.pos++
+    p.depth++
+    mut inner := sum(p)
+    p.depth--
+    if peek(p) == 41:
+        p.pos++
+    else p.pos < p.text.Len():
+        fail(p, "Invalid input")
+    end
+    if rooted:
+        square_root(p, inner)
+    end
+    inner.percent = false
+    ret inner
+end
+
+func number(p &: Parser): Term:
+    mut t := Term {}
+    c := peek(p)
+    if not scan.IsDigit(c) and c != 46:
+        fail(p, "Incomplete expression")
+        ret t
+    end
+    stop := scan.NumberEnd(p.text, p.pos)
+    mut ok := false
+    mut value := decimal.Parse(p.text.Substr(p.pos, stop - p.pos), ok)
+    p.pos = stop
+    if not ok:
+        value.Free()
+        fail(p, "Invalid number")
+        ret t
+    end
+    replace(p, t, value)
+    ret t
+end
+
+func primary(p &: Parser): Term:
+    c := peek(p)
+    if c == 40 or c == 114:
+        ret group(p)
+    end
+    ret number(p)
+end
+
+func percent(p &: Parser, t &: Term):
+    mut hundred := decimal.FromInt(100 as i64)
+    defer hundred.Free()
+    divide(p, t, hundred)
+    t.percent = true
+end
+
+func postfix(p &: Parser): Term:
+    mut t := primary(p)
+    until p.error == "":
+        c := peek(p)
+        if c == 94:
+            p.pos++
+            replace(p, t, decimal.Mul(t.value, t.value))
+            t.percent = false
+        else c == 37:
+            p.pos++
+            percent(p, t)
+        else:
+            break
+        end
+    end
+    ret t
+end
+
+func unary(p &: Parser): Term:
+    mut negative := false
+    until peek(p) == 45:
+        negative = not negative
+        p.pos++
+    end
+    mut t := postfix(p)
+    if negative:
+        replace(p, t, decimal.Neg(t.value))
+    end
+    ret t
+end
+
+func product(p &: Parser): Term:
+    mut left := unary(p)
+    until p.error == "":
+        c := peek(p)
+        if c != 42 and c != 47:
+            break
+        end
+        p.pos++
+        mut right := unary(p)
+        if p.error == "":
+            if c == 42:
+                replace(p, left, decimal.Mul(left.value, right.value))
+            else:
+                divide(p, left, right.value)
+            end
+            left.percent = false
+        end
+        right.value.Free()
+    end
+    ret left
+end
+
+func add_term(p &: Parser, left &: Term, right &: Term, op: int):
+    if right.percent:
+        replace(p, right, decimal.Mul(left.value, right.value))
+    end
+    if op == 43:
+        replace(p, left, decimal.Add(left.value, right.value))
+    else:
+        replace(p, left, decimal.Sub(left.value, right.value))
+    end
+    left.percent = false
+end
+
+func sum(p &: Parser): Term:
+    mut left := product(p)
+    until p.error == "":
+        c := peek(p)
+        if c != 43 and c != 45:
+            break
+        end
+        p.pos++
+        mut right := product(p)
+        if p.error == "":
+            add_term(p, left, right, c)
+        end
+        right.value.Free()
+    end
+    ret left
+end
+
+pub func Run(text: str): Outcome:
+    mut p := Parser { text = text }
+    mut t := sum(p)
+    defer t.value.Free()
+    if p.error == "" and p.pos < p.text.Len():
+        p.error = "Invalid input"
+    end
+    if p.error != "":
+        ret Outcome { error = p.error }
+    end
+    ret Outcome { ok = true, shown = numbers.Shown(t.value), exact = numbers.Exact(t.value) }
+end

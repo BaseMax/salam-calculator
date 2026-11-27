@@ -1,0 +1,29 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component HistoryHeader(count: int, send: func (str, str)):
+    box:
+        layout = "row"
+        align = "center"
+        justify = "between"
+        shrink = 0
+        span:
+            font size = 15
+            font weight = "semibold"
+            color = colors.Soft()
+            content = "History"
+        end
+        if count > 0:
+            Chip:
+                label = "Clear"
+                active = false
+                intent = "forget"
+                send = send
+            end
+        end
+    end
+end

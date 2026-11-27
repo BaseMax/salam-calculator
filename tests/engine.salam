@@ -1,0 +1,99 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+import str
+
+include "../core/model.salam"
+include "../core/engine.salam"
+include "../core/typing.salam"
+include "../core/solve.salam"
+include "../core/pretty.salam"
+
+func typed(s: model.State, keys: str): model.State:
+    mut n := s
+    parts := str.Fields(keys)
+    each key in parts:
+        n = engine.Press(n, key)
+    end
+    ret n
+end
+
+func show(keys: str):
+    s := typed(model.State {}, keys)
+    shown := s.error != "" ? s.error : s.expr
+    println keys, "->", shown
+end
+
+func previews(keys: str):
+    s := typed(model.State {}, keys)
+    println keys, "~>", solve.Preview(s)
+end
+
+func main:
+    show("1 + 2 =")
+    show(". 1 + . 2 =")
+    show("2 + 3 * 4 =")
+    show("( 2 + 3 ) * 4 =")
+    show("1 0 / 4 =")
+    show("1 / 3 * 3 =")
+    show("1 / 3 = * 3 =")
+    show("5 / 0 =")
+    show("5 / 0 = back")
+    show("2 + 3 = =")
+    show("2 + 3 = = =")
+    show("2 + 3 = 7")
+    show("2 + 3 = + 1 =")
+    show("1 0 0 + 1 0 % =")
+    show("1 0 0 - 1 0 % =")
+    show("5 0 * 1 0 % =")
+    show("5 0 % =")
+    show("9 root =")
+    show("root 2 =")
+    show("2 = root =")
+    show("1 6 root + 1 =")
+    show("root 1 6 ) + 1 =")
+    show("0 . 0 0 0 4 root =")
+    show("2 root = square =")
+    show("1 0 0 0 0 0 0 0 0 0 square square square root =")
+    show("4 negate root =")
+    show("5 + ( 2 + 2 ) root =")
+    show("1 0 + 3 square root =")
+    show("1 2 square =")
+    show("5 negate * 3 =")
+    show("5 negate negate =")
+    show("8 = negate")
+    show("8 = negate + 1 0 =")
+    show("5 * - 3 =")
+    show("5 + * 3 =")
+    show("- 4 + 1 =")
+    show("* 4 =")
+    show("0 0 0 7")
+    show("1 . 2 . 3")
+    show("1 2 3 back back")
+    show("9 root back")
+    show("root back")
+    show("2 ( 3 + 1 =")
+    show("( 2 ) 3 =")
+    show("1 + =")
+    show("1 2 3 4 5 6 7 8 9 * 9 8 7 6 5 4 3 2 1 =")
+    show("9 9 9 9 9 9 9 9 9 9 square =")
+    show("1 / 1 0 0 0 0 0 0 = square square =")
+    show("9 9 9 9 9 9 9 9 9 9 = square square square square =")
+    show("2 root square =")
+    show("6 / 2 =")
+    show("1 0 0 0 0 0 0")
+    show("7 clear")
+    show("=")
+    previews("1 2 + 3")
+    previews("1 2 +")
+    previews("1 2")
+    previews("5 / 0")
+    println typing.Recall(typed(model.State {}, "2 + 9"), "-4").expr
+    println typing.Recall(typed(model.State {}, "2 +"), "15").expr
+    println pretty.Expression("1234567.5+(-2)*r(9)^/4")
+    println pretty.Expression("1.5e-7-1")
+end

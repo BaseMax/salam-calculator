@@ -1,0 +1,30 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component Screen(app: session.Session, send: func (str, str)):
+    box:
+        layout = "row"
+        justify = "center"
+        height = 100vh
+        gap = 12
+        CalculatorColumn:
+            app = app
+            send = send
+        end
+        if page.width >= 760 and page.height >= 520:
+            Sidebar:
+                entries = app.entries
+                send = send
+            end
+        end
+        if not page.touch:
+            KeyboardSink:
+                send = send
+            end
+        end
+    end
+end

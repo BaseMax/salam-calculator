@@ -1,0 +1,137 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package numbers
+
+import mem
+import str
+import decimal
+
+pub const WORKING_SCALE := 40
+
+const SHOWN_DIGITS := 15
+const PLAIN_DIGITS := 18
+const TINY_ZEROS := 12
+
+struct Figures:
+    pub digits: str = ""
+    pub exponent: int = 0
+end
+
+func trim_zeros(text: str): str:
+    if text.Find(".") < 0:
+        ret text
+    end
+    mut stop := text.Len()
+    until stop > 0 and (text[stop - 1] as int) == 48:
+        stop--
+    end
+    if stop > 0 and (text[stop - 1] as int) == 46:
+        stop--
+    end
+    ret text.Substr(0, stop)
+end
+
+func plain(d: decimal.Dec, scale: int): str:
+    mut rounded := decimal.Rescale(d, scale, decimal.Rounding.HalfEven)
+    defer rounded.Free()
+    if rounded.IsZero():
+        ret "0"
+    end
+    ret trim_zeros(rounded.ToStr())
+end
+
+func significant(text: str): Figures:
+    mut digits := str.NewBuilder()
+    defer str.BufFree(digits)
+    mut exponent := 0
+    dot := text.Find(".")
+    point := dot < 0 ? text.Len() : dot
+    mut first := -1
+    mut i := text.StartsWith("-") ? 1 : 0
+    until i < text.Len():
+        c := text[i] as int
+        if c != 46:
+            if first < 0 and c != 48:
+                first = i
+                exponent = i < point ? point - i - 1 : point - i
+            end
+            if first >= 0:
+                str.BufAppendChar(digits, c)
+            end
+        end
+        i++
+    end
+    ret Figures { digits = str.Clone(str.BufStr(digits)), exponent = exponent }
+end
+
+func scientific(text: str): str:
+    figures := significant(text)
+    all := figures.digits
+    defer mem.Free(all as void*)
+    if all.Len() == 0:
+        ret "0"
+    end
+    keep := all.Len() < SHOWN_DIGITS ? all.Len() : SHOWN_DIGITS
+    mut mantissa := decimal.ParseOr(all.Substr(0, 1) + "." + all.Substr(1, all.Len() - 1) + "0")
+    defer mantissa.Free()
+    mut shown := plain(mantissa, keep - 1)
+    mut exponent := figures.exponent
+    if shown == "10":
+        shown = "1"
+        exponent++
+    end
+    sign := text.StartsWith("-") ? "-" : ""
+    ret sign + shown + "e" + str.FromInt(exponent as i64)
+end
+
+pub func WholeDigits(text: str): int:
+    start := text.StartsWith("-") ? 1 : 0
+    dot := text.Find(".")
+    stop := dot < 0 ? text.Len() : dot
+    if stop - start == 1 and (text[start] as int) == 48:
+        ret 0
+    end
+    ret stop - start
+end
+
+pub func LeadingZeros(text: str): int:
+    dot := text.Find(".")
+    if dot < 0:
+        ret 0
+    end
+    mut count := 0
+    mut i := dot + 1
+    until i < text.Len() and (text[i] as int) == 48:
+        count++
+        i++
+    end
+    ret count
+end
+
+pub func Shown(d: decimal.Dec): str:
+    mut full := decimal.Rescale(d, WORKING_SCALE, decimal.Rounding.HalfEven)
+    defer full.Free()
+    if full.IsZero():
+        ret "0"
+    end
+    text := full.ToStr()
+    whole := WholeDigits(text)
+    zeros := LeadingZeros(text)
+    if whole > PLAIN_DIGITS or (whole == 0 and zeros >= TINY_ZEROS):
+        ret scientific(text)
+    end
+    mut scale := whole == 0 ? zeros + SHOWN_DIGITS : SHOWN_DIGITS - whole
+    if scale < 0:
+        scale = 0
+    end
+    ret plain(d, scale)
+end
+
+pub func Exact(d: decimal.Dec): str:
+    ret plain(d, WORKING_SCALE)
+end

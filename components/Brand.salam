@@ -1,0 +1,15 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component Brand:
+    span:
+        font size = 16
+        font weight = "bold"
+        color = colors.Accent()
+        content = "Salam Calculator"
+    end
+end

@@ -1,0 +1,57 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+import str
+
+component Tile(symbol: str, ink: str, face: str):
+    box:
+        width = 270
+        height = 270
+        radius = 76
+        align = "center"
+        justify = "center"
+        background = face
+        shadow = 0, 18, 40, "#7a1f0a40"
+        span:
+            font size = 190
+            line height = 1
+            font weight = "bold"
+            color = ink
+            content = symbol
+        end
+    end
+end
+
+component TileRow(first: str, second: str):
+    box:
+        layout = "row"
+        gap = 44
+        each _, symbol in str.Fields(first + " " + second):
+            Tile:
+                symbol = symbol
+                ink = symbol == "=" ? "#ffffff" : "#d4501c"
+                face = symbol == "=" ? "#1d212a" : "#ffffff"
+            end
+        end
+    end
+end
+
+page:
+    title = "icon"
+    margin = 0
+    padding = 0
+    box:
+        width = 1024
+        height = 1024
+        gap = 44
+        align = "center"
+        justify = "center"
+        background = "linear(135, #ff9a2e, #f0435f)"
+        TileRow: first = "+" second = "−" end
+        TileRow: first = "×" second = "=" end
+    end
+end

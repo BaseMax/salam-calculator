@@ -1,0 +1,22 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package sizes
+
+pub func Value(text: str, small: bool): int:
+    length := text.Len()
+    if length <= 11:
+        ret small ? 38 : 58
+    end
+    if length <= 16:
+        ret small ? 32 : 44
+    end
+    if length <= 24:
+        ret small ? 26 : 32
+    end
+    ret small ? 20 : 24
+end

@@ -1,0 +1,19 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component Sidebar(entries: Vector<model.Entry>, send: func (str, str)):
+    box:
+        width = 300
+        shrink = 0
+        padding = 14
+        background = colors.Side()
+        HistoryPanel:
+            entries = entries
+            send = send
+        end
+    end
+end

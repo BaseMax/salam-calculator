@@ -1,0 +1,34 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component Header(browsing: bool, send: func (str, str)):
+    box:
+        layout = "row"
+        align = "center"
+        justify = "between"
+        shrink = 0
+        Brand: end
+        box:
+            layout = "row"
+            gap = 8
+            Chip:
+                label = "Copy"
+                active = false
+                intent = "copy"
+                send = send
+            end
+            if page.width < 760 or page.height < 520:
+                Chip:
+                    label = "History"
+                    active = browsing
+                    intent = "history"
+                    send = send
+                end
+            end
+        end
+    end
+end

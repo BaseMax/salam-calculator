@@ -1,0 +1,55 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package readout
+
+include "../core/model.salam"
+include "../core/solve.salam"
+include "../core/pretty.salam"
+
+func finished(calc: model.State): model.Readout:
+    mut above := ""
+    if calc.source != "":
+        above = pretty.Expression(calc.source) + " ="
+    end
+    ret model.Readout { above = above, value = pretty.Expression(calc.expr) }
+end
+
+func failed(calc: model.State): model.Readout:
+    ret model.Readout { value = pretty.Expression(calc.expr), below = calc.error, failed = true }
+end
+
+func typing(calc: model.State): model.Readout:
+    mut below := ""
+    preview := solve.Preview(calc)
+    if preview != "":
+        below = "= " + pretty.Expression(preview)
+    end
+    value := calc.expr == "" ? "0" : pretty.Expression(calc.expr)
+    ret model.Readout { value = value, below = below }
+end
+
+pub func Of(calc: model.State): model.Readout:
+    if calc.error != "":
+        ret failed(calc)
+    end
+    if calc.done:
+        ret finished(calc)
+    end
+    ret typing(calc)
+end
+
+pub func Copyable(calc: model.State): str:
+    if calc.error != "":
+        ret "0"
+    end
+    preview := solve.Preview(calc)
+    if preview != "":
+        ret preview
+    end
+    ret calc.expr == "" ? "0" : calc.expr
+end

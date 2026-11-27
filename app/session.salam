@@ -1,0 +1,169 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package session
+
+import gui.ui
+import gui.window
+import gui.device
+
+include "../core/model.salam"
+include "../core/engine.salam"
+include "../core/typing.salam"
+include "../core/pretty.salam"
+include "../storage/history.salam"
+include "readout.salam"
+include "keyboard.salam"
+
+pub struct Session:
+    pub calc: model.State = model.State {}
+    pub shown: model.Readout = model.Readout {}
+    pub browsing: bool = false
+    pub entries: Vector<model.Entry> = Vector {} as Vector<model.Entry>
+end
+
+func focus():
+    ui.ById("keys").Focus()
+end
+
+func press(s &: Session, action: str):
+    s.calc = engine.Press(s.calc, action)
+    if s.calc.recorded:
+        history.Add(s.entries, s.calc.source, s.calc.rounded)
+    end
+    s.shown = readout.Of(s.calc)
+end
+
+func tap(s &: Session, action: str):
+    kind := action == "=" ? device.HapticKind.Success : device.HapticKind.Tap
+    device.Haptic(kind)
+    press(s, action)
+    focus()
+end
+
+func recall(s &: Session, result: str):
+    s.calc = typing.Recall(s.calc, result)
+    s.browsing = false
+    s.shown = readout.Of(s.calc)
+    focus()
+end
+
+func forget(s &: Session):
+    s.entries.Clear()
+    history.Save(s.entries)
+    focus()
+end
+
+func browse(s &: Session):
+    s.browsing = not s.browsing
+    focus()
+end
+
+func copy(s &: Session):
+    text := readout.Copyable(s.calc)
+    if window.SetClipboardText(text):
+        mut shown := s.shown
+        shown.below = "Copied " + pretty.Expression(text)
+        shown.failed = false
+        s.shown = shown
+    end
+    focus()
+end
+
+func typed(s &: Session, text: str):
+    actions := keyboard.Actions(text)
+    each action in actions:
+        press(s, action)
+    end
+    ui.ById("keys").SetValue("")
+end
+
+func escape(s &: Session):
+    if s.browsing:
+        s.browsing = false
+    else:
+        press(s, "clear")
+    end
+end
+
+func enter(s &: Session, target: str):
+    if target == "keys" or target == "":
+        focus()
+        press(s, "=")
+    end
+end
+
+func shortcut(s &: Session):
+    event := ui.CurrentEvent()
+    if keyboard.IsCommand(event.modifiers):
+        if event.key == "c":
+            copy(s)
+        end
+        ret
+    end
+    if not keyboard.MovesFocus(event.key):
+        focus()
+    end
+    switch event.key:
+        "Enter":
+            enter(s, event.target)
+            break
+        end
+        "Backspace":
+            press(s, "back")
+            break
+        end
+        "Delete":
+            press(s, "clear")
+            break
+        end
+        "Escape":
+            escape(s)
+            break
+        end
+        else: break end
+    end
+end
+
+pub func Start(s &: Session):
+    history.Load(s.entries)
+    s.shown = readout.Of(s.calc)
+end
+
+pub func Handle(s &: Session, intent: str, value: str):
+    switch intent:
+        "key":
+            tap(s, value)
+            break
+        end
+        "recall":
+            recall(s, value)
+            break
+        end
+        "history":
+            browse(s)
+            break
+        end
+        "forget":
+            forget(s)
+            break
+        end
+        "copy":
+            copy(s)
+            break
+        end
+        "typed":
+            typed(s, value)
+            break
+        end
+        "shortcut":
+            shortcut(s)
+            break
+        end
+        else: break end
+    end
+end

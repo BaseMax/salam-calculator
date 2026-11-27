@@ -1,0 +1,20 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component ExpressionLine(text: str):
+    paragraph:
+        id = "above"
+        key = "above-" + text
+        margin = 0
+        min height = 24
+        direction = "ltr"
+        text align = "right"
+        font size = 18
+        color = colors.Muted()
+        content = text
+    end
+end

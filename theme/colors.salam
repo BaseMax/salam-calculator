@@ -1,0 +1,40 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package colors
+
+pub func Page(): str:
+    ret "light dark(#f3f1ec, #0f1116)"
+end
+
+pub func Text(): str:
+    ret "light dark(#12141a, #ffffff)"
+end
+
+pub func Muted(): str:
+    ret "light dark(#6a6f7d, #8d93a3)"
+end
+
+pub func Soft(): str:
+    ret "light dark(#4b5160, #b9bfcd)"
+end
+
+pub func Accent(): str:
+    ret "light dark(#ef6a2e, #ff9a52)"
+end
+
+pub func Danger(): str:
+    ret "light dark(#c62b1f, #ff8177)"
+end
+
+pub func Card(): str:
+    ret "light dark(#ffffff, #1d212a)"
+end
+
+pub func Side(): str:
+    ret "light dark(#ebe7df, #14171e)"
+end

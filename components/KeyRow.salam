@@ -1,0 +1,24 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component KeyRow(actions: str, send: func (str, str)):
+    box:
+        layout = "row"
+        direction = "ltr"
+        gap = 10
+        grow = 1
+        basis = 0
+        min height = 40
+        max height = 92
+        each _, action in str.Fields(actions):
+            Key:
+                action = action
+                send = send
+            end
+        end
+    end
+end

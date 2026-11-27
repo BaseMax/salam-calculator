@@ -1,0 +1,31 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component Display(shown: model.Readout):
+    box:
+        grow = 2
+        basis = 0
+        min height = 130
+        if page.height < 620:
+            min height = 76
+        end
+        justify = "end"
+        gap = 4
+        padding = 8, 6
+        overflow = "hidden"
+        ExpressionLine:
+            text = shown.above
+        end
+        ValueLine:
+            text = shown.value
+        end
+        StatusLine:
+            text = shown.below
+            failed = shown.failed
+        end
+    end
+end

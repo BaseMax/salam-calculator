@@ -1,0 +1,16 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component HistoryEmpty:
+    paragraph:
+        margin = 24, 0
+        text align = "center"
+        font size = 15
+        color = colors.Muted()
+        content = "Your calculations will show up here."
+    end
+end

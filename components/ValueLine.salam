@@ -1,0 +1,24 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component ValueLine(text: str):
+    paragraph:
+        id = "value"
+        key = "value-" + text
+        margin = 0
+        direction = "ltr"
+        text align = "right"
+        line height = 1.2
+        font size = sizes.Value(text, false)
+        if page.height < 620:
+            font size = sizes.Value(text, true)
+        end
+        font weight = "light"
+        color = colors.Text()
+        content = text
+    end
+end

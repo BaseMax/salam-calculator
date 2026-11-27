@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Salam Calculator
+Comment=A precise, friendly calculator
+Exec=salam-calculator
+Icon=salam-calculator
+Terminal=false
+Categories=Utility;Calculator;

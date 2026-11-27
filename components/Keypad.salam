@@ -1,0 +1,39 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component Keypad(send: func (str, str)):
+    box:
+        gap = 10
+        grow = 5
+        basis = 0
+        justify = "end"
+        ToolRow:
+            actions = "( ) root square"
+            send = send
+        end
+        KeyRow:
+            actions = "clear back % /"
+            send = send
+        end
+        KeyRow:
+            actions = "7 8 9 *"
+            send = send
+        end
+        KeyRow:
+            actions = "4 5 6 -"
+            send = send
+        end
+        KeyRow:
+            actions = "1 2 3 +"
+            send = send
+        end
+        KeyRow:
+            actions = "negate 0 . ="
+            send = send
+        end
+    end
+end

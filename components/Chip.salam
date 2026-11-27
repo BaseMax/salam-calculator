@@ -1,0 +1,28 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component Chip(label: str, active: bool, intent: str, send: func (str, str)):
+    button:
+        padding = 7, 14
+        radius = 999
+        border = "none"
+        font size = 14
+        font weight = "semibold"
+        color = colors.Soft()
+        background = "light dark(#e7e3da, #1d212a)"
+        hover background = "light dark(#ddd8cd, #282d39)"
+        cursor = "pointer"
+        selectable = false
+        if active:
+            color = "#ffffff"
+            background = "#ef6a2e"
+            hover background = "#f27c45"
+        end
+        click = (): send(intent, "") end
+        content = label
+    end
+end

@@ -1,0 +1,233 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package typing
+
+include "scan.salam"
+include "model.salam"
+include "exact.salam"
+
+pub const MAX_LENGTH := 120
+
+const MAX_NUMBER := 30
+
+func editing(s: model.State): model.State:
+    mut n := s
+    n.done = false
+    n.error = ""
+    n.recorded = false
+    ret n
+end
+
+func starting(s: model.State): model.State:
+    if s.done:
+        ret model.State {}
+    end
+    ret editing(s)
+end
+
+func is_full(s: model.State): bool:
+    ret s.expr.Len() >= MAX_LENGTH
+end
+
+func append_value(s: model.State, text: str): model.State:
+    mut n := starting(s)
+    c := scan.LastChar(n.expr)
+    if c == 41 or c == 37 or c == 94:
+        n.expr += "*"
+    end
+    n.expr += text
+    ret n
+end
+
+func without_operators(text: str): str:
+    mut out := text
+    until scan.IsOperator(scan.LastChar(out)):
+        out = scan.DropLast(out, 1)
+    end
+    ret out
+end
+
+func root_of_result(s: model.State): model.State:
+    mut n := editing(s)
+    n.expr = "r(" + exact.Substituted(s, s.expr) + ")"
+    n.exact = ""
+    n.rounded = ""
+    ret n
+end
+
+func flipped(value: str): str:
+    if value.StartsWith("-"):
+        ret value.Substr(1, value.Len() - 1)
+    end
+    ret "-" + value
+end
+
+func negate_result(s: model.State): model.State:
+    mut n := s
+    n.expr = flipped(s.expr)
+    n.rounded = n.expr
+    n.exact = flipped(s.exact)
+    n.recorded = false
+    ret n
+end
+
+func has_sign(head: str): bool:
+    if scan.LastChar(head) != 45:
+        ret false
+    end
+    ret head.Len() == 1 or not scan.EndsValue(head[head.Len() - 2] as int)
+end
+
+pub func Digit(s: model.State, digit: str): model.State:
+    mut n := starting(s)
+    number := scan.TrailingNumber(n.expr)
+    if number.Len() >= MAX_NUMBER or is_full(n):
+        ret n
+    end
+    if number == "0":
+        n.expr = scan.DropLast(n.expr, 1) + digit
+        ret n
+    end
+    ret append_value(n, digit)
+end
+
+pub func Point(s: model.State): model.State:
+    mut n := starting(s)
+    if is_full(n):
+        ret n
+    end
+    number := scan.TrailingNumber(n.expr)
+    if number.Len() == 0:
+        ret append_value(n, "0.")
+    end
+    if number.Find(".") < 0 and number.Find("e") < 0:
+        n.expr += "."
+    end
+    ret n
+end
+
+pub func Operator(s: model.State, op: str): model.State:
+    mut n := editing(s)
+    if is_full(n):
+        ret n
+    end
+    if scan.LastChar(n.expr) == 46:
+        n.expr = scan.DropLast(n.expr, 1)
+    end
+    c := scan.LastChar(n.expr)
+    minus := op == "-"
+    if minus and (c == 0 or c == 40 or c == 42 or c == 47):
+        n.expr += op
+        ret n
+    end
+    head := without_operators(n.expr)
+    last := scan.LastChar(head)
+    if (last == 0 or last == 40) and not minus:
+        ret n
+    end
+    n.expr = head + op
+    ret n
+end
+
+pub func OpenBracket(s: model.State): model.State:
+    mut n := starting(s)
+    if is_full(n):
+        ret n
+    end
+    if scan.LastChar(n.expr) == 46:
+        n.expr = scan.DropLast(n.expr, 1)
+    end
+    if scan.IsDigit(scan.LastChar(n.expr)):
+        n.expr += "*"
+    end
+    ret append_value(n, "(")
+end
+
+pub func CloseBracket(s: model.State): model.State:
+    mut n := editing(s)
+    if scan.OpenBrackets(n.expr) > 0 and scan.EndsValue(scan.LastChar(n.expr)):
+        n.expr += ")"
+    end
+    ret n
+end
+
+pub func Suffix(s: model.State, mark: str): model.State:
+    mut n := editing(s)
+    c := scan.LastChar(n.expr)
+    if is_full(n) or not scan.EndsValue(c) or (mark == "%" and c == 37):
+        ret n
+    end
+    n.expr += mark
+    ret n
+end
+
+pub func Root(s: model.State): model.State:
+    if s.done and s.error == "" and s.expr != "":
+        ret root_of_result(s)
+    end
+    mut n := starting(s)
+    if is_full(n):
+        ret n
+    end
+    start := scan.OperandStart(n.expr)
+    if start < n.expr.Len():
+        operand := n.expr.Substr(start, n.expr.Len() - start)
+        n.expr = n.expr.Substr(0, start) + "r(" + operand + ")"
+        ret n
+    end
+    ret append_value(n, "r(")
+end
+
+pub func Negate(s: model.State): model.State:
+    if s.done and s.expr == s.rounded and s.rounded != "0" and s.exact != "":
+        ret negate_result(s)
+    end
+    mut n := editing(s)
+    start := scan.NumberStart(n.expr)
+    head := n.expr.Substr(0, start)
+    tail := n.expr.Substr(start, n.expr.Len() - start)
+    if has_sign(head):
+        n.expr = scan.DropLast(head, 1) + tail
+        ret n
+    end
+    c := scan.LastChar(head)
+    blocked := tail.Len() == 0 and (c == 41 or c == 37 or c == 94)
+    if not blocked and not is_full(n):
+        n.expr = head + "-" + tail
+    end
+    ret n
+end
+
+pub func Backspace(s: model.State): model.State:
+    mut n := editing(s)
+    if s.error != "":
+        ret n
+    end
+    count := n.expr.EndsWith("r(") ? 2 : 1
+    n.expr = scan.DropLast(n.expr, count)
+    if not exact.Applies(n, n.expr):
+        n.exact = ""
+        n.rounded = ""
+    end
+    ret n
+end
+
+pub func Recall(s: model.State, value: str): model.State:
+    mut n := starting(s)
+    if n.expr.Len() + value.Len() + 3 > MAX_LENGTH:
+        ret n
+    end
+    c := scan.LastChar(n.expr)
+    if scan.IsDigit(c) or c == 46:
+        n.expr = n.expr.Substr(0, scan.NumberStart(n.expr))
+    end
+    if value.StartsWith("-") and n.expr != "":
+        ret append_value(n, "(" + value + ")")
+    end
+    ret append_value(n, value)
+end

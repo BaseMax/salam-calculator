@@ -1,0 +1,34 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package engine
+
+include "scan.salam"
+include "model.salam"
+include "typing.salam"
+include "solve.salam"
+
+pub func Press(s: model.State, key: str): model.State:
+    if key.Len() == 1 and scan.IsDigit(key[0] as int):
+        ret typing.Digit(s, key)
+    end
+    switch key:
+        ".": ret typing.Point(s) end
+        "+", "-", "*", "/": ret typing.Operator(s, key) end
+        "(": ret typing.OpenBracket(s) end
+        ")": ret typing.CloseBracket(s) end
+        "%": ret typing.Suffix(s, "%") end
+        "square": ret typing.Suffix(s, "^") end
+        "root": ret typing.Root(s) end
+        "negate": ret typing.Negate(s) end
+        "back": ret typing.Backspace(s) end
+        "clear": ret model.State {} end
+        "=": ret solve.Equals(s) end
+        else: break end
+    end
+    ret s
+end

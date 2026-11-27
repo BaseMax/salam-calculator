@@ -1,0 +1,51 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package keys
+
+pub func Id(action: str): str:
+    switch action:
+        "+": ret "add" end
+        "-": ret "subtract" end
+        "*": ret "multiply" end
+        "/": ret "divide" end
+        "=": ret "equals" end
+        ".": ret "dot" end
+        "%": ret "percent" end
+        "(": ret "open" end
+        ")": ret "close" end
+        "clear", "back", "negate", "root", "square": ret action end
+        else: break end
+    end
+    ret "d" + action
+end
+
+pub func Label(action: str): str:
+    switch action:
+        "-": ret "−" end
+        "*": ret "×" end
+        "/": ret "÷" end
+        "clear": ret "C" end
+        "back": ret "⌫" end
+        "negate": ret "±" end
+        "root": ret "√" end
+        "square": ret "x²" end
+        else: break end
+    end
+    ret action
+end
+
+pub func Tone(action: str): str:
+    switch action:
+        "+", "-", "*", "/": ret "operator" end
+        "=": ret "equals" end
+        "clear", "back", "%": ret "edit" end
+        "(", ")", "root", "square": ret "tool" end
+        else: break end
+    end
+    ret "digit"
+end

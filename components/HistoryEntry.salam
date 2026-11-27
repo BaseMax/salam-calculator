@@ -1,0 +1,36 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+pub component HistoryEntry(position: int, source: str, result: str, send: func (str, str)):
+    button:
+        id = "entry-" + position
+        key = "entry-" + position
+        layout = "column"
+        align = "end"
+        gap = 2
+        shrink = 0
+        padding = 10, 14
+        radius = 14
+        border = "none"
+        background = colors.Card()
+        hover background = "light dark(#fff1e2, #2b2520)"
+        cursor = "pointer"
+        direction = "ltr"
+        click = (): send("recall", result) end
+        span:
+            font size = 14
+            color = colors.Muted()
+            content = pretty.Expression(source) + " ="
+        end
+        span:
+            font size = 22
+            font weight = "medium"
+            color = colors.Text()
+            content = pretty.Expression(result)
+        end
+    end
+end

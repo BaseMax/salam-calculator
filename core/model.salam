@@ -1,0 +1,31 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package model
+
+pub struct State:
+    pub expr: str = ""
+    pub error: str = ""
+    pub done: bool = false
+    pub source: str = ""
+    pub again: str = ""
+    pub rounded: str = ""
+    pub exact: str = ""
+    pub recorded: bool = false
+end
+
+pub struct Entry:
+    pub source: str = ""
+    pub result: str = ""
+end
+
+pub struct Readout:
+    pub above: str = ""
+    pub value: str = "0"
+    pub below: str = ""
+    pub failed: bool = false
+end

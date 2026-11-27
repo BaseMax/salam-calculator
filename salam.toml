@@ -1,0 +1,17 @@
+[app]
+id = "ir.salamlang.calculator"
+name = "Salam Calculator"
+version = "0.1.0"
+main = "main.salam"
+icon = "assets/icon.png"
+icon_bg = "#f76b3f"
+splash_color = "#0f1116"
+description = "A precise, friendly calculator written in Salam"
+author = "Seyyed Ali Mohammadiyeh"
+category = "Utility"
+
+[android]
+category = "productivity"
+
+[ios]
+category = "utilities"

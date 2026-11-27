@@ -1,0 +1,71 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package pretty
+
+include "scan.salam"
+
+func grouped(whole: str): str:
+    if whole.Len() <= 3:
+        ret whole
+    end
+    head := whole.Len() % 3
+    mut out := whole.Substr(0, head)
+    mut i := head
+    until i < whole.Len():
+        if i > 0:
+            out += ","
+        end
+        out += whole.Substr(i, 3)
+        i += 3
+    end
+    ret out
+end
+
+func grouped_number(number: str): str:
+    mut stop := 0
+    until stop < number.Len() and scan.IsDigit(number[stop] as int):
+        stop++
+    end
+    ret grouped(number.Substr(0, stop)) + number.Substr(stop, number.Len() - stop)
+end
+
+func symbol(c: int, binary: bool): str:
+    switch c:
+        43: ret " + " end
+        45: ret binary ? " − " : "−" end
+        42: ret " × " end
+        47: ret " ÷ " end
+        94: ret "²" end
+        114: ret "√" end
+        40: ret "(" end
+        41: ret ")" end
+        37: ret "%" end
+        else: break end
+    end
+    ret ""
+end
+
+pub func Expression(text: str): str:
+    mut out := ""
+    mut i := 0
+    mut last := 0
+    until i < text.Len():
+        c := text[i] as int
+        if scan.IsDigit(c) or c == 46:
+            stop := scan.NumberEnd(text, i)
+            out += grouped_number(text.Substr(i, stop - i))
+            last = text[stop - 1] as int
+            i = stop
+            continue
+        end
+        out += symbol(c, scan.EndsValue(last))
+        last = c
+        i++
+    end
+    ret out
+end

@@ -1,0 +1,70 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package skin
+
+include "keys.salam"
+
+pub struct Skin:
+    pub ink: str = "light dark(#171a21, #f3f4f7)"
+    pub face: str = "light dark(#ffffff, #1d212a)"
+    pub hover: str = "light dark(#f8f6f2, #272c37)"
+    pub pressed: str = "light dark(#ebe7df, #323846)"
+    pub size: int = 24
+    pub radius: int = 18
+end
+
+func tool(): Skin:
+    ret Skin {
+        ink = "light dark(#4b5160, #b9bfcd)",
+        face = "light dark(#e7e3da, #181b23)",
+        hover = "light dark(#ddd8cd, #222733)",
+        pressed = "light dark(#d2ccbf, #2d3342)",
+        size = 19,
+        radius = 14
+    }
+end
+
+func edit(): Skin:
+    ret Skin {
+        ink = "light dark(#c62b1f, #ff8177)",
+        face = "light dark(#e7e3da, #2a2f3b)",
+        hover = "light dark(#ddd8cd, #343a49)",
+        pressed = "light dark(#d2ccbf, #3f4658)"
+    }
+end
+
+func operator(): Skin:
+    ret Skin {
+        ink = "light dark(#a84a06, #ffae63)",
+        face = "light dark(#ffe4c7, #3a2a1e)",
+        hover = "light dark(#ffd9b0, #483323)",
+        pressed = "light dark(#ffcc97, #573d29)",
+        size = 28
+    }
+end
+
+func equals(): Skin:
+    ret Skin {
+        ink = "#ffffff",
+        face = "linear(135, #f97a1f, #ef4a5f)",
+        hover = "linear(135, #ff8a33, #f75a6e)",
+        pressed = "linear(135, #e66c14, #da3b50)",
+        size = 30
+    }
+end
+
+pub func For(action: str): Skin:
+    switch keys.Tone(action):
+        "tool": ret tool() end
+        "edit": ret edit() end
+        "operator": ret operator() end
+        "equals": ret equals() end
+        else: break end
+    end
+    ret Skin {}
+end

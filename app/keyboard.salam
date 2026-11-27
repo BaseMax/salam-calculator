@@ -1,0 +1,55 @@
+/*
+ * Salam Calculator
+ * https://github.com/BaseMax/salam-calculator
+ *
+ * Licensed under GPL-3.0
+ */
+
+package keyboard
+
+import str
+import gui.window
+
+func action_of(symbol: str): str:
+    switch symbol:
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9": ret symbol end
+        "+", "(", ")", "%", "=": ret symbol end
+        ".", ",": ret "." end
+        "-", "−": ret "-" end
+        "*", "x", "X", "×": ret "*" end
+        "/", "÷": ret "/" end
+        "r", "√": ret "root" end
+        "^", "²": ret "square" end
+        "c", "C": ret "clear" end
+        else: break end
+    end
+    ret ""
+end
+
+func ignored_in_paste(symbol: str): bool:
+    ret symbol == "," or symbol == "c" or symbol == "x"
+end
+
+pub func Actions(text: str): Vector<str>:
+    mut found := Vector {} as Vector<str>
+    if text.Len() == 0:
+        ret found
+    end
+    symbols := str.Chars(str.ToEnglishDigits(text))
+    pasted := symbols.Len() > 1
+    each symbol in symbols:
+        action := action_of(symbol)
+        if action != "" and not (pasted and ignored_in_paste(symbol)):
+            found.Push(action)
+        end
+    end
+    ret found
+end
+
+pub func IsCommand(modifiers: int): bool:
+    ret (modifiers & (window.mod_control | window.mod_super)) != 0
+end
+
+pub func MovesFocus(key: str): bool:
+    ret key == "Tab" or key == "Enter" or key == " " or key == "Shift"
+end
